@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment / secrets
+.env
+.env.*
+
+# Chrome debug profile (also lives in $HOME by default)
+.multi-post-chrome/
+
+# Local user input (groups + caption are personal data)
+caption.txt
+groups.txt
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
