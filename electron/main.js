@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -22,8 +22,9 @@ let win = null;
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 900,
-    height: 760,
+    width: 1360,
+    height: 864,
+    icon: path.join(__dirname, '..', 'icon.svg.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -48,6 +49,11 @@ function saveSettings(data) {
 // ---- IPC ----
 ipcMain.handle('settings:load', () => loadSettings());
 ipcMain.handle('settings:save', (_e, data) => { saveSettings(data); return true; });
+
+ipcMain.handle('shell:open', (_e, url) => {
+  if (/^https?:\/\//.test(String(url))) shell.openExternal(url);
+  return true;
+});
 
 ipcMain.handle('images:pick', async () => {
   const res = await dialog.showOpenDialog(win, {

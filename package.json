@@ -8,7 +8,11 @@
   "scripts": {
     "start": "electron .",
     "bundle-chromium": "node scripts/bundle-chromium.js",
-    "dist": "npm run bundle-chromium && electron-builder -mw"
+    "dist": "npm run bundle-chromium && electron-builder -mw",
+    "dist:mac": "npm run bundle-chromium && electron-builder -m",
+    "dist:mac-arm64": "npm run bundle-chromium && electron-builder -m --arm64",
+    "dist:mac-x64": "npm run bundle-chromium && electron-builder -m --x64",
+    "dist:win": "npm run bundle-chromium && electron-builder -w"
   },
   "dependencies": {
     "playwright": "^1.60.0"
@@ -31,12 +35,14 @@
       }
     ],
     "mac": {
+      "icon": "icon.svg.png",
       "target": [
         { "target": "dmg", "arch": ["x64", "arm64"] }
       ],
       "category": "public.app-category.social-networking"
     },
     "win": {
+      "icon": "icon.svg.png",
       "target": [
         { "target": "nsis", "arch": ["x64"] }
       ]
