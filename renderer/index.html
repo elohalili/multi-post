@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data:; style-src 'self' 'unsafe-inline';" />
+  <title>Multi-Post</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Multi-Post</h1>
+  <p class="sub">Fills caption + photos into each selected Facebook group. Never posts — you click Post yourself.</p>
+
+  <section>
+    <label for="caption">Caption</label>
+    <textarea id="caption" rows="5" placeholder="Write your post caption here…"></textarea>
+  </section>
+
+  <section>
+    <div class="row-head">
+      <label>Photos</label>
+      <button id="add-photos" class="btn-sec">Add photos</button>
+    </div>
+    <ul id="photo-list" class="chips"></ul>
+  </section>
+
+  <section>
+    <div class="row-head">
+      <label>Groups</label>
+    </div>
+    <div class="add-group">
+      <input id="g-url" type="text" placeholder="Group URL (https://www.facebook.com/groups/…)" />
+      <input id="g-label" type="text" placeholder="Label (optional)" />
+      <button id="add-group" class="btn-sec">Add</button>
+    </div>
+    <ul id="group-list" class="groups"></ul>
+  </section>
+
+  <section class="actions">
+    <button id="btn-login" class="btn-pri">1. Open Facebook &amp; log in</button>
+    <button id="btn-post" class="btn-pri" disabled>2. Fill all selected groups</button>
+    <span id="status" class="status">Not logged in</span>
+  </section>
+
+  <section>
+    <label>Progress</label>
+    <pre id="log" class="log"></pre>
+  </section>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

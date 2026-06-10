@@ -1,16 +1,49 @@
 {
   "name": "multi-post",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
+  "description": "Standalone desktop app to pre-fill Facebook group posts (caption + photos). Never auto-posts.",
+  "main": "electron/main.js",
   "author": "",
   "license": "ISC",
-  "type": "module",
+  "scripts": {
+    "start": "electron .",
+    "bundle-chromium": "node scripts/bundle-chromium.js",
+    "dist": "npm run bundle-chromium && electron-builder -mw"
+  },
   "dependencies": {
-    "playwright-core": "^1.60.0"
+    "playwright": "^1.60.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.multipost.app",
+    "productName": "Multi-Post",
+    "files": [
+      "electron/**/*",
+      "renderer/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "ms-playwright",
+        "to": "ms-playwright"
+      }
+    ],
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ],
+      "category": "public.app-category.social-networking"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

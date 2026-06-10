@@ -1,38 +1,47 @@
-# multi-post
+# Multi-Post
 
-Opens each Facebook group in a tab, pre-fills the new-post composer with your
-caption + image, then **stops**. You review every tab and click **Post** yourself.
+Standalone desktop app. Write a caption, attach one or more photos, pick which
+Facebook groups to post to, then:
 
-Nothing is ever posted automatically.
+1. **Open Facebook & log in** — opens a bundled browser on the FB login page. Log
+   in once; the session is remembered for next time.
+2. **Fill all selected groups** — opens each selected group in a tab, fills the
+   composer with your caption + photos, then **stops**. You review every tab and
+   click **Post** yourself.
 
-## Setup (once)
+Nothing is ever posted automatically. No terminal, no Node, no Chrome required —
+the installer bundles its own browser.
+
+## Run from source (dev)
 
 ```bash
 npm install
+npm run bundle-chromium   # downloads Chromium into ./ms-playwright (once)
+npm start
 ```
 
-## Use
+## Build installers
 
-1. Put your group URLs in `groups.txt` (one per line).
-2. Launch Chrome with the debug port (your normal Chrome can stay open):
-   ```bash
-   ./launch-chrome.sh
-   ```
-   Chrome 136+ blocks remote debugging on the default profile, so this opens a
-   dedicated profile (`~/.multi-post-chrome`). **First run only:** log into
-   Facebook in that window. The login is saved and reused every later run.
-3. In another terminal, run:
-   ```bash
-   node post.js groups.txt path/to/image.jpg
-   ```
-   Put your caption text in `caption.txt` (multi-line is fine).
-4. The script opens one tab per group and fills caption + image. Switch to
-   Chrome, review each tab, and hit **Post**.
+```bash
+npm run dist
+```
+
+Produces a macOS `.dmg` and a Windows `.exe` (NSIS) in `dist/`, each with Chromium
+bundled. Double-click to install — no preinstall needed on the target machine.
+
+## How it works
+
+- `electron/main.js` — Electron main process; owns the Playwright browser, handles
+  file picking and settings persistence (`settings.json` under the app's userData).
+- `electron/poster.js` — opens the persistent browser (FB login persists in a
+  profile dir), then fills each group's composer with caption + photos. Never
+  closes tabs, never clicks Post.
+- `renderer/` — the form (caption, photo picker, group list with checkboxes,
+  progress log).
 
 ## Notes
 
-- Facebook changes its page layout often. If auto-fill misses on a group, the
-  script logs `⚠` and leaves the tab open — just fill that one manually.
-- Tabs open one at a time on purpose; opening many at once trips Facebook's
-  bot checks.
-- The script never closes tabs and never clicks Post.
+- Facebook changes its page layout often. If auto-fill misses on a group, the log
+  shows `⚠` and leaves the tab open — just fill that one manually.
+- Tabs open one at a time on purpose; opening many at once trips Facebook's bot checks.
+- The group list and caption are saved between runs. Photos are picked fresh each session.

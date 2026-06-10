@@ -12,9 +12,9 @@ npm-debug.log*
 # Chrome debug profile (also lives in $HOME by default)
 .multi-post-chrome/
 
-# Local user input (groups + caption are personal data)
-caption.txt
-groups.txt
+# Bundled browser + build output
+ms-playwright/
+dist/
 
 # OS
 .DS_Store

@@ -1,0 +1,84 @@
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const path = require('node:path');
+const fs = require('node:fs');
+
+// In a packaged build, the bundled Chromium lives in resources/ms-playwright.
+// In dev it sits in ./ms-playwright next to package.json (created by bundle-chromium).
+// Either way, point Playwright at it. If the folder is missing (dev w/o bundling),
+// Playwright falls back to its own default cache.
+const bundledBrowsers = app.isPackaged
+  ? path.join(process.resourcesPath, 'ms-playwright')
+  : path.join(__dirname, '..', 'ms-playwright');
+if (fs.existsSync(bundledBrowsers)) {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = bundledBrowsers;
+}
+
+const poster = require('./poster');
+
+const SETTINGS_PATH = () => path.join(app.getPath('userData'), 'settings.json');
+const PROFILE_DIR = () => path.join(app.getPath('userData'), 'chrome-profile');
+
+let win = null;
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 900,
+    height: 760,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+  win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+}
+
+function loadSettings() {
+  try {
+    return JSON.parse(fs.readFileSync(SETTINGS_PATH(), 'utf8'));
+  } catch {
+    return { caption: '', groups: [] };
+  }
+}
+
+function saveSettings(data) {
+  fs.writeFileSync(SETTINGS_PATH(), JSON.stringify(data, null, 2), 'utf8');
+}
+
+// ---- IPC ----
+ipcMain.handle('settings:load', () => loadSettings());
+ipcMain.handle('settings:save', (_e, data) => { saveSettings(data); return true; });
+
+ipcMain.handle('images:pick', async () => {
+  const res = await dialog.showOpenDialog(win, {
+    properties: ['openFile', 'multiSelections'],
+    filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] }],
+  });
+  return res.canceled ? [] : res.filePaths;
+});
+
+ipcMain.handle('login:start', async () => {
+  await poster.openLogin(PROFILE_DIR());
+  return true;
+});
+
+ipcMain.handle('post:run', async (_e, payload) => {
+  await poster.runPost({
+    caption: payload.caption,
+    images: payload.images,
+    groups: payload.groups,
+    onProgress: (line) => { if (win) win.webContents.send('progress', line); },
+  });
+  return true;
+});
+
+app.whenReady().then(() => {
+  createWindow();
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
