@@ -10,7 +10,7 @@ npm-debug.log*
 .env.*
 
 # Chrome debug profile (also lives in $HOME by default)
-.multi-post-chrome/
+.Multi-Post-chrome/
 
 # Bundled browser + build output
 ms-playwright/

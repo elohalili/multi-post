@@ -1,5 +1,5 @@
 {
-  "name": "multi-post",
+  "name": "Multi-Post",
   "version": "1.0.0",
   "description": "Standalone desktop app to pre-fill Facebook group posts (caption + photos). Never auto-posts.",
   "main": "electron/main.js",
@@ -37,14 +37,25 @@
     "mac": {
       "icon": "icon.svg.png",
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
       "category": "public.app-category.social-networking"
     },
     "win": {
       "icon": "icon.svg.png",
       "target": [
-        { "target": "nsis", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
     "nsis": {

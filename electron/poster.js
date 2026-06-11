@@ -1,4 +1,4 @@
-// Multi-post core. Owns one Playwright Chromium persistent context shared between
+// Multi-Post core. Owns one Playwright Chromium persistent context shared between
 // the "log in" step and the "fill groups" step.
 //
 // For each Facebook group: opens a tab, opens the composer, types the caption,
@@ -21,8 +21,8 @@ async function openLogin(profileDir) {
   if (context) {
     // Already open — bring a login tab to front and reuse the session.
     const page = context.pages()[0] || (await context.newPage());
-    await page.goto('https://www.facebook.com/login', { waitUntil: 'domcontentloaded' }).catch(() => {});
-    await page.bringToFront().catch(() => {});
+    await page.goto('https://www.facebook.com/login', { waitUntil: 'domcontentloaded' }).catch(() => { });
+    await page.bringToFront().catch(() => { });
     return;
   }
 
@@ -37,7 +37,7 @@ async function openLogin(profileDir) {
   context.on('close', () => { context = null; });
 
   const page = context.pages()[0] || (await context.newPage());
-  await page.goto('https://www.facebook.com/login', { waitUntil: 'domcontentloaded' }).catch(() => {});
+  await page.goto('https://www.facebook.com/login', { waitUntil: 'domcontentloaded' }).catch(() => { });
 }
 
 function isLoggedInWindowOpen() {
@@ -56,7 +56,7 @@ async function fillGroup(url, i, total, caption, images, onProgress) {
     for (const hint of COMPOSER_HINTS) {
       const trigger = page.getByText(hint, { exact: false }).first();
       if (await trigger.count().catch(() => 0)) {
-        await trigger.click({ timeout: 4000 }).catch(() => {});
+        await trigger.click({ timeout: 4000 }).catch(() => { });
         const dlg = page.getByRole('dialog');
         if (await dlg.first().isVisible({ timeout: 4000 }).catch(() => false)) {
           opened = true;
@@ -67,7 +67,7 @@ async function fillGroup(url, i, total, caption, images, onProgress) {
     if (!opened) {
       // Fallback: first role=button near top that looks like the composer.
       const btn = page.getByRole('button', { name: new RegExp(COMPOSER_HINTS.join('|'), 'i') }).first();
-      await btn.click({ timeout: 4000 }).catch(() => {});
+      await btn.click({ timeout: 4000 }).catch(() => { });
     }
 
     const dialog = page.getByRole('dialog').first();
