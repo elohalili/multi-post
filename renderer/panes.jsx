@@ -36,21 +36,11 @@ function Check({ on, onClick }) {
 }
 
 /* ── Compose: caption ─────────────────────────────────────────────────── */
-const TEMPLATES = [
-  {
-    name: "Bird ID + gear",
-    body: "{species}.\n\nCanon 1 DX II\nCanon EF 600mm f/4,0 L IS II USM",
-  },
-  {
-    name: "Location + date",
-    body: "{species} — {location}, {month}.\n\nShot handheld at first light.",
-  },
-  { name: "Minimal", body: "{species}." },
-];
-
 function ComposePane({
   caption,
   setCaption,
+  templates,
+  setTemplates,
   photos,
   setPhotos,
   onAddPhotos,
@@ -58,8 +48,24 @@ function ComposePane({
   dense,
 }) {
   const [tplOpen, setTplOpen] = React.useState(false);
+  // edit: null = browse; {ix, name, body} = editing (ix === -1 → new)
+  const [edit, setEdit] = React.useState(null);
   const chars = caption.length;
   const pad = dense ? 14 : 18;
+
+  const startNew = () =>
+    setEdit({ ix: -1, name: "", body: caption });
+  const startEdit = (ix) =>
+    setEdit({ ix, name: templates[ix].name, body: templates[ix].body });
+  const cancelEdit = () => setEdit(null);
+  const saveEdit = () => {
+    const name = edit.name.trim() || "Untitled";
+    const tpl = { name, body: edit.body };
+    if (edit.ix === -1) setTemplates([...templates, tpl]);
+    else setTemplates(templates.map((t, i) => (i === edit.ix ? tpl : t)));
+    setEdit(null);
+  };
+  const delTpl = (ix) => setTemplates(templates.filter((_, i) => i !== ix));
   return (
     <div className="pane">
       <div className="pane-head">
@@ -71,27 +77,89 @@ function ComposePane({
           </button>
           {tplOpen && (
             <>
-              <div className="scrim" onClick={() => setTplOpen(false)} />
-              <div className="pop">
-                <div className="pop-label">Insert a saved caption</div>
-                {TEMPLATES.map((t) => (
-                  <button
-                    key={t.name}
-                    className="pop-item"
-                    onClick={() => {
-                      setCaption(t.body);
-                      setTplOpen(false);
-                    }}
-                  >
-                    <Ic.pen size={14} />
-                    <div>
-                      <div className="pop-item-name">{t.name}</div>
-                      <div className="pop-item-sub">
-                        {t.body.split("\n")[0]}
-                      </div>
+              <div
+                className="scrim"
+                onClick={() => {
+                  setTplOpen(false);
+                  setEdit(null);
+                }}
+              />
+              <div className="pop pop-wide">
+                {edit ? (
+                  <div className="tpl-editor">
+                    <div className="pop-label">
+                      {edit.ix === -1 ? "New template" : "Edit template"}
                     </div>
-                  </button>
-                ))}
+                    <input
+                      className="tpl-name"
+                      value={edit.name}
+                      placeholder="Template name"
+                      autoFocus
+                      onChange={(e) =>
+                        setEdit({ ...edit, name: e.target.value })
+                      }
+                    />
+                    <textarea
+                      className="tpl-body"
+                      value={edit.body}
+                      placeholder="Caption body — use {species}, {location}, {month}…"
+                      onChange={(e) =>
+                        setEdit({ ...edit, body: e.target.value })
+                      }
+                    />
+                    <div className="tpl-editor-foot">
+                      <button className="btn-ghost sm" onClick={cancelEdit}>
+                        Cancel
+                      </button>
+                      <button className="btn-accent sm" onClick={saveEdit}>
+                        <Ic.check size={13} w={2.4} /> Save
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="pop-label">Insert a saved caption</div>
+                    {templates.length === 0 && (
+                      <div className="pop-empty">No templates yet.</div>
+                    )}
+                    {templates.map((t, ix) => (
+                      <div key={ix} className="pop-row">
+                        <button
+                          className="pop-item"
+                          onClick={() => {
+                            setCaption(t.body);
+                            setTplOpen(false);
+                          }}
+                        >
+                          <Ic.pen size={14} />
+                          <div>
+                            <div className="pop-item-name">{t.name}</div>
+                            <div className="pop-item-sub">
+                              {t.body.split("\n")[0]}
+                            </div>
+                          </div>
+                        </button>
+                        <div className="pop-row-actions">
+                          <IconBtn
+                            icon={<Ic.pen size={14} />}
+                            label="Edit"
+                            onClick={() => startEdit(ix)}
+                          />
+                          <IconBtn
+                            icon={<Ic.trash size={14} />}
+                            label="Delete"
+                            danger
+                            onClick={() => delTpl(ix)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <button className="pop-add" onClick={startNew}>
+                      <Ic.plus size={14} /> New template
+                      {caption.trim() ? " from caption" : ""}
+                    </button>
+                  </>
+                )}
               </div>
             </>
           )}
@@ -307,12 +375,22 @@ function groupAvatar(g) {
   );
 }
 
+const TYPE_PALETTE = [
+  "#3a9be8",
+  "#4fae84",
+  "#d7a24c",
+  "#9a7ee0",
+  "#c46f93",
+  "#5f86c4",
+];
+
 function GroupsPane({
   groups,
   setGroups,
   sel,
   setSel,
   folders,
+  setFolders,
   dense,
   onOpen,
 }) {
@@ -322,6 +400,7 @@ function GroupsPane({
   const [url, setUrl] = React.useState("");
   const [lbl, setLbl] = React.useState("");
   const [fol, setFol] = React.useState(folders[0]?.id || "");
+  const [mgr, setMgr] = React.useState(false);
 
   const filtered = groups.filter(
     (g) =>
@@ -374,6 +453,28 @@ function GroupsPane({
   const folderCount = (fid) =>
     groups.filter((g) => fid === "all" || g.folder === fid).length;
 
+  // ── group-type (folder) editing ──────────────────────────────────────────
+  const addType = () => {
+    const id = "f" + Date.now();
+    const color = TYPE_PALETTE[folders.length % TYPE_PALETTE.length];
+    setFolders([...folders, { id, name: "New type", short: "New type", color }]);
+  };
+  const renameType = (id, name) =>
+    setFolders(
+      folders.map((f) => (f.id === id ? { ...f, name, short: name } : f)),
+    );
+  const recolorType = (id, color) =>
+    setFolders(folders.map((f) => (f.id === id ? { ...f, color } : f)));
+  const delType = (id) => {
+    const fallback = folders.find((f) => f.id !== id)?.id || "";
+    setFolders(folders.filter((f) => f.id !== id));
+    setGroups(
+      groups.map((g) => (g.folder === id ? { ...g, folder: fallback } : g)),
+    );
+    if (folder === id) setFolder("all");
+    if (fol === id) setFol(fallback);
+  };
+
   return (
     <div className="pane">
       <div className="pane-head">
@@ -408,23 +509,65 @@ function GroupsPane({
       </div>
 
       <div className="folder-row">
-        <button
-          className={"pill" + (folder === "all" ? " active" : "")}
-          onClick={() => setFolder("all")}
-        >
-          All <span className="pill-n">{folderCount("all")}</span>
-        </button>
-        {folders.map((f) => (
+        <div className="folder-pills">
           <button
-            key={f.id}
-            className={"pill" + (folder === f.id ? " active" : "")}
-            onClick={() => setFolder(f.id)}
+            className={"pill" + (folder === "all" ? " active" : "")}
+            onClick={() => setFolder("all")}
           >
-            <span className="dot" style={{ background: f.color }} /> {f.name}{" "}
-            <span className="pill-n">{folderCount(f.id)}</span>
+            All <span className="pill-n">{folderCount("all")}</span>
           </button>
-        ))}
+          {folders.map((f) => (
+            <button
+              key={f.id}
+              className={"pill" + (folder === f.id ? " active" : "")}
+              onClick={() => setFolder(f.id)}
+              title={f.name}
+            >
+              <span className="dot" style={{ background: f.color }} />
+              <span className="pill-label">{f.name}</span>
+              <span className="pill-n">{folderCount(f.id)}</span>
+            </button>
+          ))}
+        </div>
+        <button
+          className={"pill ghost icon-only" + (mgr ? " active" : "")}
+          onClick={() => setMgr((m) => !m)}
+          title="Edit group types"
+        >
+          <Ic.pen size={14} />
+        </button>
       </div>
+
+      {mgr && (
+        <div className="type-mgr">
+          <div className="pop-label">Group types</div>
+          {folders.map((f) => (
+            <div key={f.id} className="type-row">
+              <input
+                type="color"
+                className="type-color"
+                value={f.color}
+                onChange={(e) => recolorType(f.id, e.target.value)}
+              />
+              <input
+                className="type-name"
+                value={f.name}
+                onChange={(e) => renameType(f.id, e.target.value)}
+              />
+              <span className="pill-n">{folderCount(f.id)}</span>
+              <IconBtn
+                icon={<Ic.trash size={14} />}
+                label="Delete type"
+                danger
+                onClick={() => delType(f.id)}
+              />
+            </div>
+          ))}
+          <button className="pop-add" onClick={addType}>
+            <Ic.plus size={14} /> Add type
+          </button>
+        </div>
+      )}
 
       {adding && (
         <div className="add-form">

@@ -17,7 +17,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/ {
   showMembers: true,
 }; /*EDITMODE-END*/
 
-const FOLDERS = [
+const DEFAULT_FOLDERS = [
   { id: "birds", name: "Bird photography", short: "Birds", color: "#3a9be8" },
   {
     id: "wildlife",
@@ -27,6 +27,17 @@ const FOLDERS = [
   },
   { id: "landscape", name: "Landscapes", short: "Landscape", color: "#d7a24c" },
   { id: "macro", name: "Macro & detail", short: "Macro", color: "#9a7ee0" },
+];
+const DEFAULT_TEMPLATES = [
+  {
+    name: "Bird ID + gear",
+    body: "{species}.\n\nCanon 1 DX II\nCanon EF 600mm f/4,0 L IS II USM",
+  },
+  {
+    name: "Location + date",
+    body: "{species} — {location}, {month}.\n\nShot handheld at first light.",
+  },
+  { name: "Minimal", body: "{species}." },
 ];
 const DUOS = [
   ["#1d4e6b", "#3b8fb8"],
@@ -47,7 +58,7 @@ const normGroups = (arr) =>
       label: g.label || "Facebook group",
       url,
       gid: g.gid || (m ? m[1] : "—"),
-      folder: g.folder || FOLDERS[0].id,
+      folder: g.folder || DEFAULT_FOLDERS[0].id,
       members: g.members || "—",
       duo: g.duo || DUOS[i % DUOS.length],
       enabled: g.enabled !== false,
@@ -85,6 +96,8 @@ function App() {
   const [caption, setCaption] = React.useState("");
   const [photos, setPhotos] = React.useState([]);
   const [groups, setGroups] = React.useState([]);
+  const [folders, setFolders] = React.useState(DEFAULT_FOLDERS);
+  const [templates, setTemplates] = React.useState(DEFAULT_TEMPLATES);
   const [sel, setSel] = React.useState(new Set());
   const [conn, setConn] = React.useState("off");
   const [run, setRun] = React.useState({
@@ -99,6 +112,8 @@ function App() {
   React.useEffect(() => {
     window.api.loadSettings().then((s) => {
       setCaption(s.caption || "");
+      if (Array.isArray(s.folders) && s.folders.length) setFolders(s.folders);
+      if (Array.isArray(s.templates)) setTemplates(s.templates);
       const g = normGroups(s.groups);
       setGroups(g);
       setSel(new Set(g.filter((x) => x.enabled).map((x) => x.id)));
@@ -119,8 +134,8 @@ function App() {
       duo: g.duo,
       enabled: sel.has(g.id),
     }));
-    window.api.saveSettings({ caption, groups: out });
-  }, [caption, groups, sel, loaded]);
+    window.api.saveSettings({ caption, groups: out, folders, templates });
+  }, [caption, groups, sel, folders, templates, loaded]);
 
   // ── live run progress parser (poster.js emits free-text lines) ────────────
   const stamp = () =>
@@ -337,6 +352,8 @@ function App() {
             <ComposePane
               caption={caption}
               setCaption={setCaption}
+              templates={templates}
+              setTemplates={setTemplates}
               photos={photos}
               setPhotos={setPhotos}
               onAddPhotos={addPhotos}
@@ -350,7 +367,8 @@ function App() {
               setGroups={setGroups}
               sel={sel}
               setSel={setSel}
-              folders={FOLDERS}
+              folders={folders}
+              setFolders={setFolders}
               dense={dense}
               onOpen={openExternal}
             />

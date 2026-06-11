@@ -16,6 +16,12 @@ npm-debug.log*
 ms-playwright/
 dist/
 
+# Transpiled renderer (generated from .jsx by scripts/build-renderer.js)
+renderer/app.js
+renderer/brand.js
+renderer/panes.js
+renderer/tweaks-panel.js
+
 # OS
 .DS_Store
 

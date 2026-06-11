@@ -827,14 +827,36 @@
     .folder-row {
       display: flex;
       gap: 7px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      align-items: center;
       margin-bottom: 13px
+    }
+
+    .folder-pills {
+      display: flex;
+      gap: 7px;
+      flex: 1;
+      min-width: 0;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: thin
+    }
+
+    .folder-pills::-webkit-scrollbar {
+      height: 5px
+    }
+
+    .folder-pills::-webkit-scrollbar-thumb {
+      background: var(--line2);
+      border-radius: 999px
     }
 
     .pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      flex: none;
+      max-width: 190px;
       white-space: nowrap;
       background: var(--s2);
       border: 1px solid var(--line);
@@ -844,6 +866,27 @@
       font-weight: 550;
       color: var(--text-2);
       transition: background .15s, border-color .15s, color .15s
+    }
+
+    .pill-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .pill .dot {
+      flex: none
+    }
+
+    .pill.icon-only {
+      flex: none;
+      max-width: none;
+      padding: 6px 9px;
+      color: var(--text-3)
+    }
+
+    .pill.icon-only.active {
+      color: var(--text)
     }
 
     .pill:hover {
@@ -1199,6 +1242,158 @@
     .appbar {
       -webkit-app-region: no-drag
     }
+
+    /* ── template editor (compose popover) ── */
+    .pop.pop-wide {
+      width: 360px
+    }
+
+    .pop-row {
+      display: flex;
+      align-items: center;
+      gap: 4px
+    }
+
+    .pop-row .pop-item {
+      flex: 1;
+      min-width: 0
+    }
+
+    .pop-row-actions {
+      display: flex;
+      gap: 2px;
+      padding-right: 4px;
+      flex: none
+    }
+
+    .pop-empty {
+      padding: 10px;
+      font-size: 12px;
+      color: var(--text-3)
+    }
+
+    .pop-add {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      margin-top: 4px;
+      padding: 9px 10px;
+      background: transparent;
+      border: 1px dashed var(--line2);
+      border-radius: 9px;
+      color: var(--text-2);
+      font-size: 12.5px;
+      font-weight: 600;
+      transition: background .12s, color .12s
+    }
+
+    .pop-add:hover {
+      background: var(--s3);
+      color: var(--text)
+    }
+
+    .pop-add svg {
+      color: var(--accent)
+    }
+
+    .tpl-editor {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 4px
+    }
+
+    .tpl-name,
+    .tpl-body {
+      width: 100%;
+      background: var(--s2);
+      border: 1px solid var(--line2);
+      border-radius: 9px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 9px 11px;
+      outline: none
+    }
+
+    .tpl-name:focus,
+    .tpl-body:focus {
+      border-color: var(--accent-line)
+    }
+
+    .tpl-body {
+      min-height: 120px;
+      resize: vertical;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.45
+    }
+
+    .tpl-editor-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px
+    }
+
+    /* ── group-type manager ── */
+    .pill.ghost {
+      border-style: dashed
+    }
+
+    .type-mgr {
+      background: var(--s1);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 8px 10px 10px;
+      margin-bottom: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .type-row {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .type-color {
+      width: 26px;
+      height: 26px;
+      flex: none;
+      padding: 0;
+      border: 1px solid var(--line2);
+      border-radius: 7px;
+      background: transparent;
+      cursor: pointer
+    }
+
+    .type-color::-webkit-color-swatch-wrapper {
+      padding: 2px
+    }
+
+    .type-color::-webkit-color-swatch {
+      border: none;
+      border-radius: 5px
+    }
+
+    .type-name {
+      flex: 1;
+      min-width: 0;
+      background: var(--s2);
+      border: 1px solid var(--line2);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      padding: 7px 10px;
+      outline: none
+    }
+
+    .type-name:focus {
+      border-color: var(--accent-line)
+    }
   </style>
 </head>
 
@@ -1206,11 +1401,10 @@
   <div id="root"></div>
   <script src="vendor/react.production.min.js"></script>
   <script src="vendor/react-dom.production.min.js"></script>
-  <script src="vendor/babel.min.js"></script>
-  <script type="text/babel" src="tweaks-panel.jsx"></script>
-  <script type="text/babel" src="brand.jsx"></script>
-  <script type="text/babel" src="panes.jsx"></script>
-  <script type="text/babel" src="app.jsx"></script>
+  <script src="tweaks-panel.js"></script>
+  <script src="brand.js"></script>
+  <script src="panes.js"></script>
+  <script src="app.js"></script>
 </body>
 
 </html>
