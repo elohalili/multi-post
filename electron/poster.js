@@ -1,5 +1,6 @@
-// Multi-Post core. Owns one Playwright Chromium persistent context shared between
-// the "log in" step and the "fill groups" step.
+// Multi-Post core. Owns one persistent context driving the user's INSTALLED
+// browser (Google Chrome, else Microsoft Edge) — no bundled Chromium. Shared
+// between the "log in" step and the "fill groups" step.
 //
 // For each Facebook group: opens a tab, opens the composer, types the caption,
 // attaches the image(s). STOPS before posting. User reviews each tab and clicks Post.
@@ -12,6 +13,11 @@ const COMPOSER_HINTS = [
   'Write something', "What's on your mind",
   'Scrivi qualcosa', 'A cosa stai pensando',
 ];
+
+// Prefer the user's Google Chrome, fall back to Edge. Both are Chromium-based,
+// so Playwright drives them the same way — it just launches the installed binary
+// instead of a downloaded Chromium.
+const BROWSER_CHANNELS = ['chrome', 'msedge'];
 
 let context = null; // module-level: shared across openLogin() and runPost()
 
@@ -26,18 +32,40 @@ async function openLogin(profileDir) {
     return;
   }
 
-  context = await chromium.launchPersistentContext(profileDir, {
-    headless: false,
-    viewport: null,
-    args: ['--no-first-run', '--no-default-browser-check'],
-  });
-
-  // If the user closes the whole browser window, drop the stale context so the
-  // next openLogin() relaunches cleanly.
-  context.on('close', () => { context = null; });
+  context = await launchInstalledBrowser(profileDir);
 
   const page = context.pages()[0] || (await context.newPage());
   await page.goto('https://www.facebook.com/login', { waitUntil: 'domcontentloaded' }).catch(() => { });
+}
+
+// Try each installed-browser channel in order; return the first that launches.
+// Throws a clear error if none is installed.
+async function launchInstalledBrowser(profileDir) {
+  const opts = {
+    headless: false,
+    viewport: null,
+    // Playwright disables the Chromium sandbox by default (adds --no-sandbox,
+    // which trips Chrome's "unsupported command-line flag" banner). Re-enable it:
+    // the user's real Chrome/Edge runs sandboxed fine.
+    chromiumSandbox: true,
+    args: ['--no-first-run', '--no-default-browser-check'],
+  };
+  let lastErr = null;
+  for (const channel of BROWSER_CHANNELS) {
+    try {
+      const ctx = await chromium.launchPersistentContext(profileDir, { ...opts, channel });
+      // If the user closes the whole browser window, drop the stale context so
+      // the next openLogin() relaunches cleanly.
+      ctx.on('close', () => { context = null; });
+      return ctx;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw new Error(
+    `Could not launch an installed browser (tried ${BROWSER_CHANNELS.join(', ')}). ` +
+    `Install Google Chrome or Microsoft Edge. (${lastErr && lastErr.message})`
+  );
 }
 
 function isLoggedInWindowOpen() {

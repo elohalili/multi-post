@@ -9,12 +9,11 @@
     "build:renderer": "node scripts/build-renderer.js",
     "prestart": "npm run build:renderer",
     "start": "electron .",
-    "bundle-chromium": "node scripts/bundle-chromium.js",
-    "dist": "npm run build:renderer && npm run bundle-chromium && electron-builder -mw",
-    "dist:mac": "npm run build:renderer && npm run bundle-chromium && electron-builder -m",
-    "dist:mac-arm64": "npm run build:renderer && npm run bundle-chromium && electron-builder -m --arm64",
-    "dist:mac-x64": "npm run build:renderer && npm run bundle-chromium && electron-builder -m --x64",
-    "dist:win": "npm run build:renderer && npm run bundle-chromium && electron-builder -w"
+    "dist": "npm run build:renderer && electron-builder -mw",
+    "dist:mac": "npm run build:renderer && electron-builder -m",
+    "dist:mac-arm64": "npm run build:renderer && electron-builder -m --arm64",
+    "dist:mac-x64": "npm run build:renderer && electron-builder -m --x64",
+    "dist:win": "npm run build:renderer && electron-builder -w"
   },
   "dependencies": {
     "playwright": "^1.60.0"
@@ -31,12 +30,6 @@
       "electron/**/*",
       "renderer/**/*",
       "!renderer/**/*.jsx"
-    ],
-    "extraResources": [
-      {
-        "from": "ms-playwright",
-        "to": "ms-playwright"
-      }
     ],
     "mac": {
       "icon": "icon.svg.png",

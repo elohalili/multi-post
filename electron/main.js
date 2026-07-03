@@ -2,17 +2,8 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
-// In a packaged build, the bundled Chromium lives in resources/ms-playwright.
-// In dev it sits in ./ms-playwright next to package.json (created by bundle-chromium).
-// Either way, point Playwright at it. If the folder is missing (dev w/o bundling),
-// Playwright falls back to its own default cache.
-const bundledBrowsers = app.isPackaged
-  ? path.join(process.resourcesPath, 'ms-playwright')
-  : path.join(__dirname, '..', 'ms-playwright');
-if (fs.existsSync(bundledBrowsers)) {
-  process.env.PLAYWRIGHT_BROWSERS_PATH = bundledBrowsers;
-}
-
+// No bundled Chromium: poster.js drives the user's installed Chrome/Edge via
+// Playwright's `channel` option, so there is no browser to point Playwright at.
 const poster = require('./poster');
 
 const SETTINGS_PATH = () => path.join(app.getPath('userData'), 'settings.json');
